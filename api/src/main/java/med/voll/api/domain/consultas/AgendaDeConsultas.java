@@ -1,11 +1,14 @@
 package med.voll.api.domain.consultas;
 
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import med.voll.api.domain.ValidacaoExecption;
 import med.voll.api.domain.medico.Medico;
 import med.voll.api.domain.medico.MedicoRepository;
 import med.voll.api.domain.paciente.PacienteRepository;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestBody;
 
 @Service
 @AllArgsConstructor
@@ -26,7 +29,7 @@ public class AgendaDeConsultas {
 
         var paciente = pacienteRepository.getReferenceById(dados.idPaciente());
         var medico = escolherMedico(dados);
-        var consulta = new Consulta(null, medico, paciente, dados.data());
+        var consulta = new Consulta(null, medico, paciente, dados.data(), null);
 
         consultaRepository.save(consulta);
     }
@@ -41,6 +44,15 @@ public class AgendaDeConsultas {
         }
 
         return medicoRepository.escolherMedicoAleatorioLivreNaData(dados.especialidade(), dados.data());
-
     }
+
+    public void cancelar (DadosCancelamentoConsulta dados){
+        if (!consultaRepository.existsById(dados.idConsulta())){
+            throw new ValidacaoExecption("Id da consulta informado não existe!");
+        }
+
+        var consulta = consultaRepository.getReferenceById(dados.idConsulta());
+        consulta.cancelar(dados.motivo());
+    }
+
 }
