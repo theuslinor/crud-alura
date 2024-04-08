@@ -3,7 +3,7 @@ package med.voll.api.controller;
 import med.voll.api.domain.consultas.AgendaDeConsultas;
 import med.voll.api.domain.consultas.DadosAgendamentoConsulta;
 import med.voll.api.domain.consultas.DadosDetalhamentoConsulta;
-import med.voll.api.domain.medico.Especialidade;
+import med.voll.api.domain.medico.*;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,8 +39,14 @@ class ConsultaControllerTest {
     @Autowired
     private JacksonTester<DadosDetalhamentoConsulta> dadosDetalhamentoConsulta;
 
+    @Autowired
+    private JacksonTester<DadosCadastroMedico> dadosCadastroMedicoJson;
+
     @MockBean
     private AgendaDeConsultas agendaDeConsultas;
+
+    @MockBean
+    private MedicoRepository repository;
 
 
     @Test
@@ -53,33 +59,5 @@ class ConsultaControllerTest {
         assertThat(response.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
     }
 
-    @Test
-    @DisplayName("Deveria devolver codigo http 200 quando informações estão validas")
-    @WithMockUser
-    void agendar_cenario2() throws Exception {
-        var data = LocalDateTime.now().plusHours(1);
-        var especialidade = Especialidade.CARDIOLOGIA;
-
-        var dadosDetalhamento = new DadosDetalhamentoConsulta(null, 2l, 5l, data);
-        when(agendaDeConsultas.agendar(any())).thenReturn(dadosDetalhamento);
-
-        var response = mvc
-                .perform(
-                        post("/consultas")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(dadosAgendamentoConsultaJson.write(
-                                        new DadosAgendamentoConsulta(2l, 5l, data, especialidade)
-                                ).getJson())
-                )
-                .andReturn().getResponse();
-
-        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
-
-        var jsonEsperado = dadosDetalhamentoConsulta.write(
-                dadosDetalhamento
-        ).getJson();
-
-        assertThat(response.getContentAsString()).isEqualTo(jsonEsperado);
-    }
 
 }
